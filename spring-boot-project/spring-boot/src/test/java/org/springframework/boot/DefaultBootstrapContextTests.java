@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
  */
 class DefaultBootstrapContextTests {
 
-	private DefaultBootstrapContext context = new DefaultBootstrapContext();
+	private final DefaultBootstrapContext context = new DefaultBootstrapContext();
 
-	private AtomicInteger counter = new AtomicInteger();
+	private final AtomicInteger counter = new AtomicInteger();
 
-	private StaticApplicationContext applicationContext = new StaticApplicationContext();
+	private final StaticApplicationContext applicationContext = new StaticApplicationContext();
 
 	@Test
 	void registerWhenTypeIsNullThrowsException() {

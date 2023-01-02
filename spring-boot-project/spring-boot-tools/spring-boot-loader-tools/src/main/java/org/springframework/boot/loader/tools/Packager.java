@@ -16,14 +16,19 @@
 
 package org.springframework.boot.loader.tools;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -31,7 +36,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
 
@@ -197,7 +202,8 @@ public abstract class Packager {
 		writeLoaderClasses(writer);
 		writer.writeEntries(sourceJar, getEntityTransformer(), libraries.getUnpackHandler(),
 				libraries.getLibraryLookup());
-		libraries.write(writer);
+		Map<String, Library> writtenLibraries = libraries.write(writer);
+		writeNativeImageArgFile(writer, sourceJar, writtenLibraries);
 		if (isLayered()) {
 			writeLayerIndex(writer);
 		}
@@ -211,6 +217,31 @@ public abstract class Packager {
 		else if (layout.isExecutable()) {
 			writer.writeLoaderClasses();
 		}
+	}
+
+	private void writeNativeImageArgFile(AbstractJarWriter writer, JarFile sourceJar,
+			Map<String, Library> writtenLibraries) throws IOException {
+		Set<String> excludes = new LinkedHashSet<>();
+		for (Map.Entry<String, Library> entry : writtenLibraries.entrySet()) {
+			LibraryCoordinates coordinates = entry.getValue().getCoordinates();
+			ZipEntry zipEntry = (coordinates != null)
+					? sourceJar.getEntry(ReachabilityMetadataProperties.getLocation(coordinates)) : null;
+			if (zipEntry != null) {
+				try (InputStream inputStream = sourceJar.getInputStream(zipEntry)) {
+					ReachabilityMetadataProperties properties = ReachabilityMetadataProperties
+							.fromInputStream(inputStream);
+					if (properties.isOverridden()) {
+						excludes.add(entry.getKey());
+					}
+				}
+			}
+		}
+		NativeImageArgFile argFile = new NativeImageArgFile(excludes);
+		argFile.writeIfNecessary((lines) -> {
+			String contents = String.join("\n", lines) + "\n";
+			writer.writeEntry(NativeImageArgFile.LOCATION,
+					new ByteArrayInputStream(contents.getBytes(StandardCharsets.UTF_8)));
+		});
 	}
 
 	private void writeLayerIndex(AbstractJarWriter writer) throws IOException {
@@ -493,24 +524,25 @@ public abstract class Packager {
 			return this.libraryLookup;
 		}
 
-		void write(AbstractJarWriter writer) throws IOException {
-			List<String> writtenPaths = new ArrayList<>();
+		Map<String, Library> write(AbstractJarWriter writer) throws IOException {
+			Map<String, Library> writtenLibraries = new LinkedHashMap<>();
 			for (Entry<String, Library> entry : this.libraries.entrySet()) {
 				String path = entry.getKey();
 				Library library = entry.getValue();
 				if (library.isIncluded()) {
 					String location = path.substring(0, path.lastIndexOf('/') + 1);
 					writer.writeNestedLibrary(location, library);
-					writtenPaths.add(path);
+					writtenLibraries.put(path, library);
 				}
 			}
-			writeClasspathIndexIfNecessary(writtenPaths, getLayout(), writer);
+			writeClasspathIndexIfNecessary(writtenLibraries.keySet(), getLayout(), writer);
+			return writtenLibraries;
 		}
 
-		private void writeClasspathIndexIfNecessary(List<String> paths, Layout layout, AbstractJarWriter writer)
+		private void writeClasspathIndexIfNecessary(Collection<String> paths, Layout layout, AbstractJarWriter writer)
 				throws IOException {
 			if (layout.getClasspathIndexFileLocation() != null) {
-				List<String> names = paths.stream().map((path) -> "- \"" + path + "\"").collect(Collectors.toList());
+				List<String> names = paths.stream().map((path) -> "- \"" + path + "\"").toList();
 				writer.writeIndexFile(layout.getClasspathIndexFileLocation(), names);
 			}
 		}

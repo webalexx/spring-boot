@@ -125,7 +125,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 	private List<LifecycleListener> contextLifecycleListeners = new ArrayList<>();
 
-	private List<LifecycleListener> serverLifecycleListeners = getDefaultServerLifecycleListeners();
+	private final List<LifecycleListener> serverLifecycleListeners = getDefaultServerLifecycleListeners();
 
 	private Set<TomcatContextCustomizer> tomcatContextCustomizers = new LinkedHashSet<>();
 
@@ -141,7 +141,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 
 	private Set<String> tldSkipPatterns = new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP);
 
-	private Set<String> tldScanPatterns = new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN);
+	private final Set<String> tldScanPatterns = new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN);
 
 	private Charset uriEncoding = DEFAULT_CHARSET;
 
@@ -389,9 +389,7 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 			tomcatErrorPage.setExceptionType(errorPage.getExceptionName());
 			context.addErrorPage(tomcatErrorPage);
 		}
-		for (MimeMappings.Mapping mapping : getMimeMappings()) {
-			context.addMimeMapping(mapping.getExtension(), mapping.getMimeType());
-		}
+		setMimeMappings(context);
 		configureSession(context);
 		configureCookieProcessor(context);
 		new DisableReferenceClearingContextCustomizer().customize(context);
@@ -420,6 +418,16 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
 		}
 		else {
 			context.addLifecycleListener(new DisablePersistSessionListener());
+		}
+	}
+
+	private void setMimeMappings(Context context) {
+		if (context instanceof TomcatEmbeddedContext embeddedContext) {
+			embeddedContext.setMimeMappings(getMimeMappings());
+			return;
+		}
+		for (MimeMappings.Mapping mapping : getMimeMappings()) {
+			context.addMimeMapping(mapping.getExtension(), mapping.getMimeType());
 		}
 	}
 

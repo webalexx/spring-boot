@@ -17,6 +17,7 @@
 package org.springframework.boot.actuate.security;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -52,7 +53,7 @@ public class AuthenticationAuditListener extends AbstractAuthenticationAuditList
 
 	private static final String WEB_LISTENER_CHECK_CLASS = "org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent";
 
-	private WebAuditListener webListener = maybeCreateWebListener();
+	private final WebAuditListener webListener = maybeCreateWebListener();
 
 	private static WebAuditListener maybeCreateWebListener() {
 		if (ClassUtils.isPresent(WEB_LISTENER_CHECK_CLASS, null)) {
@@ -75,7 +76,7 @@ public class AuthenticationAuditListener extends AbstractAuthenticationAuditList
 	}
 
 	private void onAuthenticationFailureEvent(AbstractAuthenticationFailureEvent event) {
-		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
 		data.put("type", event.getException().getClass().getName());
 		data.put("message", event.getException().getMessage());
 		if (event.getAuthentication().getDetails() != null) {
@@ -85,7 +86,7 @@ public class AuthenticationAuditListener extends AbstractAuthenticationAuditList
 	}
 
 	private void onAuthenticationSuccessEvent(AuthenticationSuccessEvent event) {
-		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
 		if (event.getAuthentication().getDetails() != null) {
 			data.put("details", event.getAuthentication().getDetails());
 		}

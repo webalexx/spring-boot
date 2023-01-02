@@ -56,7 +56,7 @@ public class PrometheusPushGatewayManager {
 
 	private final TaskScheduler scheduler;
 
-	private ScheduledFuture<?> scheduled;
+	private final ScheduledFuture<?> scheduled;
 
 	/**
 	 * Create a new {@link PrometheusPushGatewayManager} instance using a single threaded
@@ -166,7 +166,7 @@ public class PrometheusPushGatewayManager {
 		 * Perform a POST before shutdown.
 		 * @deprecated since 3.0.0 for removal in 3.2.0 in favor of {@link #POST}.
 		 */
-		@Deprecated
+		@Deprecated(since = "3.0.0", forRemoval = true)
 		PUSH,
 
 		/**

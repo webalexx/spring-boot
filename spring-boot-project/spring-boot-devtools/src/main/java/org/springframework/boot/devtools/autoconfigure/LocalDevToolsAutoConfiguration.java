@@ -99,8 +99,6 @@ public class LocalDevToolsAutoConfiguration {
 	@ConditionalOnProperty(prefix = "spring.devtools.restart", name = "enabled", matchIfMissing = true)
 	static class RestartConfiguration {
 
-		private static final Log restarterLogger = LogFactory.getLog(Restarter.class);
-
 		private final DevToolsProperties properties;
 
 		RestartConfiguration(DevToolsProperties properties) {
@@ -211,7 +209,7 @@ public class LocalDevToolsAutoConfiguration {
 		public void onApplicationEvent(ClassPathChangedEvent event) {
 			if (event.isRestartRequired()) {
 				logger.info(LogMessage.format("Restarting due to %s", event.overview()));
-				logger.debug(LogMessage.of(() -> "Change set: %s" + event.getChangeSet()));
+				logger.debug(LogMessage.format("Change set: %s", event.getChangeSet()));
 				Restarter.getInstance().restart(new FileWatchingFailureHandler(this.fileSystemWatcherFactory));
 			}
 		}

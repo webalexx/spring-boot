@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,9 @@
 
 package org.springframework.boot.web.client;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.TypeHint.Builder;
-import org.springframework.aot.hint.TypeReference;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.util.ClassUtils;
 
 /**
  * A supplier for {@link ClientHttpRequestFactory} that detects the preferred candidate
@@ -35,36 +27,15 @@ import org.springframework.util.ClassUtils;
  * @author Stephane Nicoll
  * @author Moritz Halbritter
  * @since 2.1.0
+ * @deprecated since 3.0.0 for removal in 3.2.0 in favor of
+ * {@link ClientHttpRequestFactories}
  */
+@Deprecated(since = "3.0.0", forRemoval = true)
 public class ClientHttpRequestFactorySupplier implements Supplier<ClientHttpRequestFactory> {
-
-	private static final boolean APACHE_HTTP_CLIENT_PRESENT = ClassUtils.isPresent("org.apache.http.client.HttpClient",
-			null);
-
-	private static final boolean OKHTTP_CLIENT_PRESENT = ClassUtils.isPresent("okhttp3.OkHttpClient", null);
 
 	@Override
 	public ClientHttpRequestFactory get() {
-		if (APACHE_HTTP_CLIENT_PRESENT) {
-			return new HttpComponentsClientHttpRequestFactory();
-		}
-		if (OKHTTP_CLIENT_PRESENT) {
-			return new OkHttp3ClientHttpRequestFactory();
-		}
-		return new SimpleClientHttpRequestFactory();
-	}
-
-	static class ClientHttpRequestFactorySupplierRuntimeHints {
-
-		static void registerHints(RuntimeHints hints, ClassLoader classLoader, Consumer<Builder> callback) {
-			hints.reflection().registerType(HttpComponentsClientHttpRequestFactory.class, (hint) -> callback
-					.accept(hint.onReachableType(TypeReference.of("org.apache.http.client.HttpClient"))));
-			hints.reflection().registerType(OkHttp3ClientHttpRequestFactory.class,
-					(hint) -> callback.accept(hint.onReachableType(TypeReference.of("okhttp3.OkHttpClient"))));
-			hints.reflection().registerType(SimpleClientHttpRequestFactory.class, (hint) -> callback
-					.accept(hint.onReachableType(TypeReference.of(SimpleClientHttpRequestFactory.class))));
-		}
-
+		return ClientHttpRequestFactories.get(ClientHttpRequestFactorySettings.DEFAULTS);
 	}
 
 }

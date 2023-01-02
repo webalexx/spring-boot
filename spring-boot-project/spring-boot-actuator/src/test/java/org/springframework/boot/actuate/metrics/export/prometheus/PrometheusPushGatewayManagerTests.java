@@ -61,9 +61,9 @@ class PrometheusPushGatewayManagerTests {
 	@Mock
 	private TaskScheduler scheduler;
 
-	private Duration pushRate = Duration.ofSeconds(1);
+	private final Duration pushRate = Duration.ofSeconds(1);
 
-	private Map<String, String> groupingKey = Collections.singletonMap("foo", "bar");
+	private final Map<String, String> groupingKey = Collections.singletonMap("foo", "bar");
 
 	@Captor
 	private ArgumentCaptor<Runnable> task;
@@ -135,7 +135,8 @@ class PrometheusPushGatewayManagerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("removal")
+	@Deprecated(since = "3.0.0", forRemoval = true)
 	void shutdownWhenShutdownOperationIsPushPerformsPushAddOnShutdown() throws Exception {
 		givenScheduleAtFixedRateWithReturnFuture();
 		PrometheusPushGatewayManager manager = new PrometheusPushGatewayManager(this.pushGateway, this.registry,

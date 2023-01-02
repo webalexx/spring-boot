@@ -98,9 +98,9 @@ public class ServerProperties {
 	private String serverHeader;
 
 	/**
-	 * Maximum size of the HTTP message header.
+	 * Maximum size of the HTTP request header.
 	 */
-	private DataSize maxHttpHeaderSize = DataSize.ofKilobytes(8);
+	private DataSize maxHttpRequestHeaderSize = DataSize.ofKilobytes(8);
 
 	/**
 	 * Type of shutdown that the server will support.
@@ -152,12 +152,23 @@ public class ServerProperties {
 		this.serverHeader = serverHeader;
 	}
 
+	@Deprecated(since = "3.0.0", forRemoval = true)
+	@DeprecatedConfigurationProperty
 	public DataSize getMaxHttpHeaderSize() {
-		return this.maxHttpHeaderSize;
+		return getMaxHttpRequestHeaderSize();
 	}
 
+	@Deprecated(since = "3.0.0", forRemoval = true)
 	public void setMaxHttpHeaderSize(DataSize maxHttpHeaderSize) {
-		this.maxHttpHeaderSize = maxHttpHeaderSize;
+		setMaxHttpRequestHeaderSize(maxHttpHeaderSize);
+	}
+
+	public DataSize getMaxHttpRequestHeaderSize() {
+		return this.maxHttpRequestHeaderSize;
+	}
+
+	public void setMaxHttpRequestHeaderSize(DataSize maxHttpRequestHeaderSize) {
+		this.maxHttpRequestHeaderSize = maxHttpRequestHeaderSize;
 	}
 
 	public Shutdown getShutdown() {
@@ -691,7 +702,7 @@ public class ServerProperties {
 			private String locale;
 
 			/**
-			 * Whether to check for log file existence so it can be recreated it if an
+			 * Whether to check for log file existence so it can be recreated if an
 			 * external process has renamed it.
 			 */
 			private boolean checkExists = false;
@@ -1400,13 +1411,13 @@ public class ServerProperties {
 			this.initialBufferSize = initialBufferSize;
 		}
 
-		@Deprecated
+		@Deprecated(since = "3.0.0", forRemoval = true)
 		@DeprecatedConfigurationProperty(reason = "Deprecated for removal in Reactor Netty")
 		public DataSize getMaxChunkSize() {
 			return this.maxChunkSize;
 		}
 
-		@Deprecated
+		@Deprecated(since = "3.0.0", forRemoval = true)
 		public void setMaxChunkSize(DataSize maxChunkSize) {
 			this.maxChunkSize = maxChunkSize;
 		}
@@ -1776,12 +1787,12 @@ public class ServerProperties {
 			/**
 			 * Socket options as defined in org.xnio.Options.
 			 */
-			private Map<String, String> socket = new LinkedHashMap<>();
+			private final Map<String, String> socket = new LinkedHashMap<>();
 
 			/**
 			 * Server options as defined in io.undertow.UndertowOptions.
 			 */
-			private Map<String, String> server = new LinkedHashMap<>();
+			private final Map<String, String> server = new LinkedHashMap<>();
 
 			public Map<String, String> getServer() {
 				return this.server;

@@ -73,7 +73,7 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 
 	private final List<Class<? extends ServletContextInitializer>> initializerTypes;
 
-	private List<ServletContextInitializer> sortedList;
+	private final List<ServletContextInitializer> sortedList;
 
 	@SafeVarargs
 	@SuppressWarnings("varargs")
@@ -84,10 +84,8 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 				: Collections.singletonList(ServletContextInitializer.class);
 		addServletContextInitializerBeans(beanFactory);
 		addAdaptableBeans(beanFactory);
-		List<ServletContextInitializer> sortedInitializers = this.initializers.values().stream()
-				.flatMap((value) -> value.stream().sorted(AnnotationAwareOrderComparator.INSTANCE))
-				.collect(Collectors.toList());
-		this.sortedList = Collections.unmodifiableList(sortedInitializers);
+		this.sortedList = this.initializers.values().stream()
+				.flatMap((value) -> value.stream().sorted(AnnotationAwareOrderComparator.INSTANCE)).toList();
 		logMappings(this.initializers);
 	}
 

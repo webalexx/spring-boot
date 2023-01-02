@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -57,15 +56,15 @@ import static org.mockito.Mockito.mock;
  */
 class ConfigDataEnvironmentTests {
 
-	private DeferredLogFactory logFactory = Supplier::get;
+	private final DeferredLogFactory logFactory = Supplier::get;
 
-	private DefaultBootstrapContext bootstrapContext = new DefaultBootstrapContext();
+	private final DefaultBootstrapContext bootstrapContext = new DefaultBootstrapContext();
 
-	private MockApplicationEnvironment environment = new MockApplicationEnvironment();
+	private final MockApplicationEnvironment environment = new MockApplicationEnvironment();
 
-	private ResourceLoader resourceLoader = new DefaultResourceLoader();
+	private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-	private Collection<String> additionalProfiles = Collections.emptyList();
+	private final Collection<String> additionalProfiles = Collections.emptyList();
 
 	@Test
 	void createExposesEnvironmentBinderToConfigDataLocationResolvers() {
@@ -155,7 +154,7 @@ class ConfigDataEnvironmentTests {
 		ConfigDataEnvironment configDataEnvironment = new ConfigDataEnvironment(this.logFactory, this.bootstrapContext,
 				this.environment, this.resourceLoader, this.additionalProfiles, null);
 		configDataEnvironment.processAndApply();
-		List<PropertySource<?>> sources = this.environment.getPropertySources().stream().collect(Collectors.toList());
+		List<PropertySource<?>> sources = this.environment.getPropertySources().stream().toList();
 		assertThat(sources.get(sources.size() - 1)).isSameAs(defaultPropertySource);
 	}
 

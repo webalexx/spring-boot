@@ -16,21 +16,15 @@
 
 package org.springframework.boot.logging.logback;
 
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.pattern.SyslogStartConverter;
 import ch.qos.logback.core.rolling.helper.DateTokenConverter;
 import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.TypeHint.Builder;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.util.ClassUtils;
 
@@ -40,9 +34,6 @@ import org.springframework.util.ClassUtils;
  * @author Andy Wilkinson
  */
 class LogbackRuntimeHints implements RuntimeHintsRegistrar {
-
-	private static final Consumer<Builder> DEFAULT_HINT = (hint) -> {
-	};
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
@@ -56,10 +47,9 @@ class LogbackRuntimeHints implements RuntimeHintsRegistrar {
 	}
 
 	private void registerHintsForLogbackLoggingSystemTypeChecks(ReflectionHints reflection, ClassLoader classLoader) {
-		reflection.registerType(LoggerContext.class, DEFAULT_HINT);
-		if (ClassUtils.isPresent("org.slf4j.bridge.SLF4JBridgeHandler", classLoader)) {
-			reflection.registerType(SLF4JBridgeHandler.class, DEFAULT_HINT);
-		}
+		reflection.registerType(LoggerContext.class);
+		reflection.registerTypeIfPresent(classLoader, "org.slf4j.bridge.SLF4JBridgeHandler", (typeHint) -> {
+		});
 	}
 
 	private void registerHintsForBuiltInLogbackConverters(ReflectionHints reflection) {
@@ -73,12 +63,8 @@ class LogbackRuntimeHints implements RuntimeHintsRegistrar {
 	}
 
 	private void registerForPublicConstructorInvocation(ReflectionHints reflection, Class<?>... classes) {
-		reflection.registerTypes(typeReferences(classes),
+		reflection.registerTypes(TypeReference.listOf(classes),
 				(hint) -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
-	}
-
-	private Iterable<TypeReference> typeReferences(Class<?>... classes) {
-		return Stream.of(classes).map(TypeReference::of).collect(Collectors.toList());
 	}
 
 }
